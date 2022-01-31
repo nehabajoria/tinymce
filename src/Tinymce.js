@@ -9,6 +9,8 @@ const Tinymce = ({ initialValue }) => {
     setValue(initialValue ?? "");
   }, [initialValue]);
 
+  let preProssesInnerHtml; 
+
   return (
     <Editor
       apiKey="mxmr841mjob4kx7baf4ej85dotmpyvf8gksgbehprnyu7nvc"
@@ -18,21 +20,47 @@ const Tinymce = ({ initialValue }) => {
       init={{
         //menubar: false,
         draggable_modal: true,
+        branding: false,
+        resize: 'both',
+        color_picker_callback: function(callback, value) {
+          callback('#FF00FF');
+        },
         plugins:
           "powerpaste image custom_button hr permanentpen preview fullscreen advlist autolink link image lists charmap print preview hr anchor pagebreak" +
           "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking" +
-          "table emoticons template help",
+          "table emoticons template help hrcustom",
         toolbar:
-          "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media | forecolor backcolor emoticons | save | custom_button | fullscreen | fontsizeselect",
+          "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media | forecolor backcolor emoticons | save | custom_button | fullscreen | fontsizeselect | hrcustom",
         content_style:
-          "a.btn {display: inline-block; line-height: 1.5;color: #212529;color: #fff;" +
+          ".btn {display: inline-block; line-height: 1.5;color: #212529;color: #fff;" +
           "background-color: #0d6efd;border-color: #0d6efd;text-decoration: none;vertical-align: middle;cursor: " +
-          "pointer;border: 1px solid transparent;padding: 0.375rem 0.75rem;border-radius: 0.25rem;}" +
+          "pointer;border: 1px solid transparent;padding: 0.375rem 0.75rem;}" +
           ".btn-primary {color: #fff;background-color: #0d6efd;border-color: #0d6efd;}" +
           ".btn-success {color: #fff;background-color: #198754;border-color: #198754;}" +
           ".btn-info {color: #000;background-color: #0dcaf0;border-color: #0dcaf0;}" +
+          ".mce-content-body a:focus {cursor: pointer}" +
+          ".italic {font-style: italic}" +
           ".isResizable {background: rgba(255, 0, 0, 0.2);border: 1px solid black;overflow: hidden;resize: both;width: 160px;height: 120px;}" +
           ".btn-success {color: #000;background-color: #ffc107;border-color: #ffc107;}",
+        init_instance_callback: function (editor) {
+            editor.on('BeforeExecCommand', function (e) {
+                if (e.command == "mcePreview") {
+                    //store content prior to changing.
+                    preProssesInnerHtml = editor.getContent();
+                    console.log("11");
+                    editor.setContent("changed content");
+                }
+            });
+            editor.on("ExecCommand", function (e) {
+                if (e.command == "mcePreview") {
+                    //Restore initial content.
+                    console.log("22");
+
+                    editor.setContent(preProssesInnerHtml);
+                }
+            });
+        },
+        link_context_toolbar: true,
         fontsize_formats:
           "8pt 9pt 10pt 11pt 12pt 14pt 18pt 24pt 30pt 36pt 48pt 60pt 72pt 96pt",
         image_advtab: true,
@@ -83,6 +111,17 @@ once you do not need it anymore.
             editor.execCommand("mceFullScreen");
           });
 
+          editor.on('ObjectResizeStart', function(e) {
+            if (e.target.nodeName == 'button') {
+              console.log(e.target, e.width, e.height);
+              e.preventDefault();
+            }
+        });
+        
+        editor.on('ObjectResized', function(e) {
+            console.log(e.target, e.width, e.height);
+        });
+
           editor.ui.registry.addButton("custom_button", {
             icon: "btn",
             tooltip: "Button",
@@ -108,67 +147,49 @@ once you do not need it anymore.
                       flex: true
                     },
                     {
-                      type: "selectbox",
-                      name: "button_target",
-                      label: "Target",
-                      items: [
-                        { text: "None", value: "" },
-                        { text: "New window", value: "_blank" },
-                        { text: "Self", value: "_self" },
-                        { text: "Parent", value: "_parent" }
-                      ],
-                      flex: true
+                      type: "sizeinput",
+                      name: "height",
+                      label: "Size",
                     },
                     {
                       type: "selectbox",
                       name: "button_rel",
-                      label: "Rel",
+                      label: "Text Style",
                       items: [
-                        { text: "No value", value: "" },
-                        { text: "Alternate", value: "alternate" },
-                        { text: "Help", value: "help" },
-                        { text: "Manifest", value: "manifest" },
-                        { text: "No follow", value: "nofollow" },
-                        { text: "No opener", value: "noopener" },
-                        { text: "No referrer", value: "noreferrer" },
-                        { text: "Opener", value: "opener" }
+                        { text: "normal", value: "normal" },
+                        { text: "italic", value: "italic" }
                       ],
                       flex: true
                     },
                     {
                       type: "selectbox",
                       name: "button_style",
-                      label: "Style",
+                      label: "Shape",
                       items: [
-                        { text: "Success", value: "success" },
-                        { text: "Info", value: "info" },
-                        { text: "Warning", value: "warning" },
-                        { text: "Error", value: "error" }
+                        { text: "rectangle", value: "rectangle" },
+                        { text: "rounded rectangle", value: "roundedRec" },
                       ],
+                      flex: true
+                    },
+                    {
+                      type: "colorpicker",
+                      name: "button_color",
+                      label: "Color",
                       flex: true
                     }
                   ]
                 },
                 onSubmit: function (api) {
-                  console.log(
-                    api.getData().button_href +
-                      "---" +
-                      api.getData().button_style
-                  );
-                  var html =
-                    '<button href="' +
-                    api.getData().button_href +
-                    '" class="isResizable btn btn-' +
-                    api.getData().button_style +
-                    '" rel="' +
-                    api.getData().button_rel +
-                    '" target="' +
-                    api.getData().button_target +
-                    '">' +
-                    api.getData().button_label +
-                    "</button>";
-                  // insert markup
-                  editor.insertContent(html);
+                  var element = document.createElement("a");
+
+                  element.style.backgroundColor = api.getData().button_color || "#000000";
+                  element.style.width = api.getData().height.width + 'px';
+                  element.style.height = api.getData().height.height + "px";
+                  element.style.borderRadius = (api.getData().button_style !== "rectangle") ? "0.25rem" : 0;
+                  element.href = api.getData().button_href;
+                  element.className = "btn " + api.getData().button_rel + " " + api.getData().button_style;
+                  element.text = api.getData().button_label;
+                  editor.insertContent(element.outerHTML);
 
                   // close the dialog
                   api.close();
@@ -190,6 +211,71 @@ once you do not need it anymore.
             }
           });
 
+          editor.ui.registry.addButton("hrcustom", {
+            icon: "hr",
+            tooltip: "Insert horizontal rule",
+            onAction: function () {
+              // open window
+              editor.windowManager.open({
+                title: "Insert horizontal rule",
+                body: {
+                  type: "panel",
+                  items: [{
+                    type: "colorpicker",
+                    name: "color",
+                    label: "Color",
+                    text: "#000000"
+                  },
+                  {
+                    type: "sizeinput",
+                    name: "height",
+                    label: "Thickness",
+                  }]
+                },
+                // generate and insert HTML upon submitting dialog
+                onSubmit: function (e) {
+                  var hr = document.createElement("hr");
+          
+                  
+          
+                  // set color
+                  hr.style.backgroundColor = e.getData().color || "#000000";
+                                    // set width
+                  hr.style.width = e.getData().height.width + "%";
+                  hr.style.height = e.getData().height.height + "px";
+        
+                  // set other styles
+                  hr.style.border = 0;
+                  hr.style.marginTop = "5px";
+                  hr.style.marginBottom = "5px";
+                  hr.style.overflow = "hidden";
+                  // insert content when the window form is submitted
+                  editor.insertContent(hr.outerHTML);
+
+
+                  // close the dialog
+                  e.close();
+                },
+                buttons: [
+                  {
+                    text: "Close",
+                    type: "cancel",
+                    onclick: "close"
+                  },
+                  {
+                    text: "Insert",
+                    type: "submit",
+                    primary: true,
+                    enabled: false
+                  }
+                ]
+              });
+            }
+          });
+          
+          // note: colorpicker plugin MUST be included for this to work
+          
+
           // editor.ui.registry.addContextToolbar('imagealignment', {
           // predicate: function (node) {
           //   return node.nodeName.toLowerCase() === 'img'
@@ -199,35 +285,35 @@ once you do not need it anymore.
           // scope: 'node'
           // });
 
-          editor.ui.registry.addContextToolbar("textselection", {
-            predicate: function (node) {
-              return !editor.selection.isCollapsed();
-            },
-            items: "bold italic | blockquote",
-            position: "selection",
-            scope: "node"
-          });
+          // editor.ui.registry.addContextToolbar("textselection", {
+          //   predicate: function (node) {
+          //     return !editor.selection.isCollapsed();
+          //   },
+          //   items: "bold italic | font fontsizeselect",
+          //   position: "selection",
+          //   scope: "node"
+          // });
         }
       }}
       //onEditorChange={(newValue, editor) => { console.log(newValue + "--nv");setValue(newValue)}}
-      onDrag={(event, editor) => {
-        console.log(editor + "--onDrag---" + event);
-      }}
-      onDragDrop={(event, editor) => {
-        console.log(editor + "--onDragDrop---" + event);
-      }}
-      onDragEnd={(event, editor) => {
-        console.log(editor + "--onDragEnd---" + event);
-      }}
-      onDragGesture={(event, editor) => {
-        console.log(editor + "--onDragGesture---" + event);
-      }}
-      onDragOver={(event, editor) => {
-        console.log(editor + "--onDragOver---" + event);
-      }}
-      onDrop={(event, editor) => {
-        console.log(editor.getBody().dir + "--onDrop---" + event.target.value);
-      }}
+      // onDrag={(event, editor) => {
+      //   console.log(editor + "--onDrag---" + event);
+      // }}
+      // onDragDrop={(event, editor) => {
+      //   console.log(editor + "--onDragDrop---" + event);
+      // }}
+      // onDragEnd={(event, editor) => {
+      //   console.log(editor + "--onDragEnd---" + event);
+      // }}
+      // onDragGesture={(event, editor) => {
+      //   console.log(editor + "--onDragGesture---" + event);
+      // }}
+      // onDragOver={(event, editor) => {
+      //   console.log(editor + "--onDragOver---" + event);
+      // }}
+      // onDrop={(event, editor) => {
+      //   console.log(editor.getBody().dir + "--onDrop---" + event.target.value);
+      // }}
     />
   );
 };
