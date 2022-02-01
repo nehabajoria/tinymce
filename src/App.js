@@ -10,7 +10,6 @@ useEffect(() => {
     fetch("/api")
       .then((res) => res.json())
       .then((data) => {
-        console.log(data.message + "--me")
         setData(data.message)
       });
   }, []);
@@ -21,8 +20,6 @@ useEffect(() => {
         <img src={logo} className="App-logo" alt="logo" />
         <p>{!data ? "Loading..." : data}</p>
         <Tinymce initialValue=""/>
-        <button className="my-custom-button">Button</button>
-
       </header>
     </div>
   );
