@@ -14,6 +14,7 @@ const Tinymce = ({ initialValue }) => {
       apiKey="mxmr841mjob4kx7baf4ej85dotmpyvf8gksgbehprnyu7nvc"
       initialValue={initialValue}
       value={value}
+     
       init={{
         draggable_modal: true,
         branding: false,
@@ -25,7 +26,8 @@ const Tinymce = ({ initialValue }) => {
           "powerpaste image custom_button hr permanentpen preview fullscreen advlist " +
           "autolink link image lists charmap print preview hr anchor pagebreak" +
           "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime" +
-          "media nonbreaking table emoticons template help hrcustom",
+          "media nonbreaking table emoticons template help hrcustom quickbars",
+          quickbars_insert_toolbar: 'quickimage quicktable | hr pagebreak',
         toolbar:
           "insertfile undo redo | styleselect | bold italic | alignleft aligncenter" + 
           "alignright alignjustify | bullist numlist outdent indent | link image | " +
