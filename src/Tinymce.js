@@ -1,20 +1,14 @@
 import { useState, useEffect } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 
-const Tinymce = ({ initialValue }) => {
-  const [value, setValue] = useState(initialValue ?? "");
-  useEffect(() => {
-    setValue(initialValue ?? "");
-  }, [initialValue]);
-
-  let preProssesInnerHtml; 
+const Tinymce = (props) => {
+  const [value, setValue] = useState("");
+  let preProssesInnerHtml;
 
   return (
     <Editor
       apiKey="mxmr841mjob4kx7baf4ej85dotmpyvf8gksgbehprnyu7nvc"
-      initialValue={initialValue}
       value={value}
-     
       init={{
         draggable_modal: true,
         branding: false,
@@ -22,17 +16,20 @@ const Tinymce = ({ initialValue }) => {
         color_picker_callback: function(callback, value) {
           callback('#FF00FF');
         },
+        save_onsavecallback: function (editor) {  
+          var content = editor.getContent();
+          props.save(content);
+        },
         plugins:
-          "powerpaste image custom_button hr permanentpen preview fullscreen advlist " +
-          "autolink link image lists charmap print preview hr anchor pagebreak" +
-          "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime" +
-          "media nonbreaking table emoticons template help hrcustom quickbars",
+          "powerpaste image hr permanentpen preview fullscreen advlist " +
+          "autolink link image lists charmap print preview hr anchor " +
+          "wordcount visualblocks visualchars code fullscreen insertdatetime " +
+          "media nonbreaking table emoticons template help quickbars save",
           quickbars_insert_toolbar: 'quickimage quicktable | hr pagebreak',
         toolbar:
-          "insertfile undo redo | styleselect | bold italic | alignleft aligncenter" + 
-          "alignright alignjustify | bullist numlist outdent indent | link image | " +
+          "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | " +
           "print preview media | forecolor backcolor emoticons | save | custom_button | " +
-          "fullscreen | fontsizeselect | hrcustom",
+          "fullscreen | fontsizeselect | hrcustom | template",
         content_style:
           ".btn {display: inline-block; line-height: 1.5;color: #212529;color: #fff;" +
           "background-color: #0d6efd;border-color: #0d6efd;text-decoration: none;" +
@@ -94,10 +91,6 @@ const Tinymce = ({ initialValue }) => {
           input.click();
         },
         setup: (editor) => {
-          editor.on("init", function (e) {
-            editor.execCommand("mceFullScreen");
-          });
-
           editor.ui.registry.addButton("custom_button", {
             icon: "btn",
             tooltip: "Button",
@@ -244,7 +237,20 @@ const Tinymce = ({ initialValue }) => {
               });
             }
           });
-        }
+        },
+        templates: [
+          {
+            title: "Template in JS",
+            description:
+              "This template is embedded within the TinyMCE init configuration.",
+            content: "<p>Template source within the TinyMCE configuration.</p>"
+          },
+          {
+            title: "Template in external file",
+            description: "The source for this template is in an external HTML file",
+            url: "be.html"
+          }
+        ]
       }}
     />
   );
